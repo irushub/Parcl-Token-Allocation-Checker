@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parcel Allocation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f0f0;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        
+        .container {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 80%; /* Set container width */
+            max-width: 700px; /* Limit container width */
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column; /* Align items vertically */
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+
+        textarea {
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            width: 100%; /* Take full width */
+            max-width: 100%;
+            resize: vertical; /* Allow vertical resizing */
+            height: 150px; /* Set initial height */
+            margin-bottom: 10px;
+        }
+
+        input[type="submit"] {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #4CAF50;
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        #allocation_result {
+            font-size: 18px;
+            text-align: left; /* Align text to left */
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Parcl Allocation Checker by irus</h1>
+        <form>
+            <label for="parcel_id">Enter Wallet Addresses (separated by commas):</label>
+            <textarea id="parcel_id" name="parcel_id" placeholder="Enter wallet addresses separated by commas..."></textarea>
+            <input type="submit" value="Check Allocations">
+        </form>
+        <div id="allocation_result"></div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('form').on('submit', function(event) {
+                event.preventDefault();
+                var formData = $(this).serializeArray();
+                var walletAddresses = formData[0].value.split(',').map(address => address.trim());
+                var allocationResults = {};
+                $.each(walletAddresses, function(index, address) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '/get_allocation',
+                        data: { 'parcel_id': address },
+                        async: false, // Synchronous request to ensure correct order of results
+                        success: function(response) {
+                            allocationResults[address] = response.allocation;
+                        },
+                        error: function(xhr, status, error) {
+                            allocationResults[address] = 'Error: ' + error;
+                        }
+                    });
+                });
+                displayAllocations(allocationResults);
+            });
+
+            function displayAllocations(allocationResults) {
+                var resultHTML = '';
+                $.each(allocationResults, function(address, allocation) {
+                    resultHTML += '<p>' + address + ' : ' + allocation + ' PRCL</p>';
+                });
+                $('#allocation_result').html(resultHTML);
+            }
+        });
+    </script>
+</body>
+</html>
